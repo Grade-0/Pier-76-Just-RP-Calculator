@@ -11,4 +11,4 @@ https://www.virustotal.com/gui/home/upload
 https://virusscan.jotti.org
 
 
-https://grade-0.github.io/Pier-76-Just-RP-Calculator/
+https://grade-0.github.io/Pier-76-Calculator/
