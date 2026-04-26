@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pier 76 Price Calculator</title>
+  <meta name="description" content="GitHub Pages-ready webpage calculator for Pier 76 service, aftermarket, cosmetic, and consumable prices." />
+  <style>
+    :root {
+      --bg: #0c0d10;
+      --panel: #151821;
+      --panel-2: #1d2230;
+      --text: #f6f7fb;
+      --muted: #a8afbf;
+      --line: rgba(255,255,255,.12);
+      --gold: #f1c232;
+      --red: #ee2f2f;
+      --green: #6aa84f;
+      --orange: #e69138;
+      --silver: #e9e9e9;
+      --shadow: 0 20px 45px rgba(0,0,0,.35);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(241, 194, 50, .18), transparent 35%),
+        radial-gradient(circle at 85% 10%, rgba(238, 47, 47, .18), transparent 30%),
+        linear-gradient(135deg, #090a0d 0%, #11151f 45%, #090a0d 100%);
+      min-height: 100vh;
+    }
+
+    .wrap {
+      width: min(1220px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 28px 0 44px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
+    .hero {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(21, 24, 33, .82);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -30px -80px auto;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: rgba(241, 194, 50, .12);
+      filter: blur(2px);
+      pointer-events: none;
+    }
+
+    .brand-lockup {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      gap: 20px;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .site-logo {
+      width: 150px;
+      max-width: 100%;
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 12px 22px rgba(0,0,0,.42));
+    }
+
+    .brand-copy {
+      min-width: 0;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(2rem, 4vw, 4rem);
+      letter-spacing: .02em;
+      line-height: .92;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+      max-width: 780px;
+      line-height: 1.5;
+    }
+
+    .total-card {
+      min-width: 280px;
+      border: 1px solid rgba(241, 194, 50, .42);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(241, 194, 50, .16), rgba(21, 24, 33, .92));
+      box-shadow: var(--shadow);
+      padding: 20px;
+      text-align: right;
+    }
+
+    .total-card .label {
+      color: var(--muted);
+      font-size: .85rem;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      margin-bottom: 8px;
+    }
+
+    #grandTotal {
+      font-size: clamp(2rem, 4vw, 3.6rem);
+      font-weight: 900;
+      color: var(--gold);
+      line-height: 1;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 18px 0 22px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); border-color: rgba(241, 194, 50, .62); }
+    button.primary { background: var(--gold); color: #111; border-color: transparent; }
+    button.danger { background: rgba(238, 47, 47, .15); border-color: rgba(238, 47, 47, .42); }
+
+    .saved-note {
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .summary-card {
+      border: 1px solid var(--line);
+      background: rgba(21, 24, 33, .74);
+      border-radius: 16px;
+      padding: 14px;
+      min-height: 86px;
+    }
+
+    .summary-card .name {
+      color: var(--muted);
+      font-weight: 700;
+      font-size: .88rem;
+      margin-bottom: 10px;
+    }
+
+    .summary-card .value {
+      font-size: 1.35rem;
+      font-weight: 900;
+    }
+
+    .summary-card.basic { border-top: 4px solid var(--green); }
+    .summary-card.aftermarket { border-top: 4px solid var(--red); }
+    .summary-card.cosmetic { border-top: 4px solid var(--silver); }
+    .summary-card.consumables { border-top: 4px solid var(--orange); }
+
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .category {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(21, 24, 33, .86);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .category-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.035);
+    }
+
+    .category-title h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-style: italic;
+      letter-spacing: .02em;
+    }
+
+    .category-total {
+      font-weight: 900;
+      color: var(--gold);
+      white-space: nowrap;
+    }
+
+    .accent-basic .category-title { border-left: 7px solid var(--green); }
+    .accent-aftermarket .category-title { border-left: 7px solid var(--red); }
+    .accent-cosmetic .category-title { border-left: 7px solid var(--silver); }
+    .accent-consumables .category-title { border-left: 7px solid var(--orange); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      vertical-align: middle;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: .78rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      text-align: left;
+      background: rgba(0,0,0,.16);
+    }
+
+    td.category-cell {
+      color: var(--muted);
+      font-size: .85rem;
+      white-space: nowrap;
+    }
+
+    td.price, td.line-total {
+      text-align: right;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    td.line-total {
+      color: var(--gold);
+      font-weight: 800;
+    }
+
+    input[type="number"] {
+      width: 82px;
+      padding: 9px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #0d1018;
+      color: var(--text);
+      font-size: 1rem;
+      text-align: center;
+      outline: none;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(241, 194, 50, .15);
+    }
+
+    .note {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 980px) {
+      header, .category-grid { grid-template-columns: 1fr; }
+      .total-card { text-align: left; }
+      .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 620px) {
+      .wrap { width: min(100% - 18px, 1220px); padding-top: 14px; }
+      .hero, .total-card { padding: 16px; }
+      .brand-lockup { grid-template-columns: 1fr; text-align: center; }
+      .site-logo { width: 180px; margin: 0 auto; }
+      .summary-grid { grid-template-columns: 1fr; }
+      th:nth-child(1), td.category-cell { display: none; }
+      th, td { padding: 9px 7px; }
+      input[type="number"] { width: 66px; }
+      .category-title { align-items: flex-start; flex-direction: column; }
+    }
+
+    @media print {
+      body { background: white; color: black; }
+      .hero, .total-card, .summary-card, .category { box-shadow: none; background: white; color: black; }
+      .toolbar, .note { display: none; }
+      .category-grid { grid-template-columns: 1fr; }
+      #grandTotal, .category-total, td.line-total { color: black; }
+      input[type="number"] { border: none; color: black; background: white; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <section class="hero" aria-labelledby="page-title">
+        <div class="brand-lockup">
+          <img class="site-logo" src="pier76-logo.png" alt="Pier 76 Garage & Grill logo">
+          <div class="brand-copy">
+            <h1 id="page-title">Pier 76 Price Calculator</h1>
+            <p class="subtitle">Enter a quantity beside each item to calculate line totals, category totals, and the grand total. Prices and categories are based on the provided pricesheet.png image.</p>
+          </div>
+        </div>
+      </section>
+
+      <aside class="total-card" aria-label="Grand total">
+        <div class="label">Grand Total</div>
+        <div id="grandTotal">$0.00</div>
+      </aside>
+    </header>
+
+    <section class="toolbar" aria-label="Calculator actions">
+      <div class="saved-note" id="saveStatus">Quantities save automatically in this browser.</div>
+      <div class="actions">
+        <button class="primary" id="copySummary" type="button">Copy Summary</button>
+        <button id="printQuote" type="button">Print / Save PDF</button>
+        <button class="danger" id="resetQty" type="button">Reset Quantities</button>
+      </div>
+    </section>
+
+    <section class="summary-grid" aria-label="Category totals">
+      <div class="summary-card basic"><div class="name">Basic Service Total</div><div class="value" id="summary-Basic Service">$0.00</div></div>
+      <div class="summary-card aftermarket"><div class="name">After Market Total</div><div class="value" id="summary-After Market">$0.00</div></div>
+      <div class="summary-card cosmetic"><div class="name">Performance &amp; Cosmetic Total</div><div class="value" id="summary-Performance & Cosmetic">$0.00</div></div>
+      <div class="summary-card consumables"><div class="name">Consumables Total</div><div class="value" id="summary-Consumables">$0.00</div></div>
+    </section>
+
+    <section class="category-grid" id="calculator" aria-label="Price calculator tables"></section>
+
+    <p class="note">GitHub Pages ready: upload this file as <strong>index.html</strong> to a GitHub repository and enable Pages from the repository settings.</p>
+  </main>
+
+  <script>
+    const priceData = [
+      {
+        category: 'Basic Service',
+        accent: 'accent-basic',
+        items: [
+          ['Sell Repair kit', 250],
+          ['In Shop Repair', 750],
+          ['Spark Plugs x4', 500],
+          ['Tire replace X4', 500],
+          ['Brakes x4', 500],
+          ['Suspension', 300],
+          ['Air Filter', 300],
+          ['Clutch', 300],
+          ['Engine Oil', 300],
+          ['Full Service', 2000]
+        ]
+      },
+      {
+        category: 'After Market',
+        accent: 'accent-aftermarket',
+        items: [
+          ['Ceramic Brakes', 1250],
+          ['Drivetrain', 1250],
+          ['Drift Tuning', 1000],
+          ['Performance Tires', 1200],
+          ['Turbo Charger', 1500],
+          ['All Engine Sounds', 2000],
+          ['Nitrous Bottle', 5000],
+          ['Nitrous Kit', 10000]
+        ]
+      },
+      {
+        category: 'Performance & Cosmetic',
+        accent: 'accent-cosmetic',
+        items: [
+          ['Respray', 500],
+          ['Cosmetic/Extras', 500],
+          ['Xenon/Neon', 750],
+          ['Tire Smoke', 500],
+          ['Wheels', 750],
+          ['Stancer Kit', 800],
+          ['Performance', 1250]
+        ]
+      },
+      {
+        category: 'Consumables',
+        accent: 'accent-consumables',
+        items: [
+          ['Cigars', 4000],
+          ['Delivery FEE', 350],
+          ['Food (each)', 175],
+          ['10 for 10 Combo', 2000],
+          ['5 for 5 Combo', 1200]
+        ]
+      }
+    ];
+
+    const currency = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2
+    });
+
+    const storageKey = 'pier76-price-calculator-quantities-v1';
+    const calculator = document.getElementById('calculator');
+    const grandTotalEl = document.getElementById('grandTotal');
+    const saveStatus = document.getElementById('saveStatus');
+    let quantities = loadQuantities();
+
+    function makeKey(category, item) {
+      return `${category}::${item}`;
+    }
+
+    function loadQuantities() {
+      try {
+        return JSON.parse(localStorage.getItem(storageKey)) || {};
+      } catch (error) {
+        saveStatus.textContent = 'Browser storage is unavailable. Calculator will still work until the page is closed.';
+        return {};
+      }
+    }
+
+    function saveQuantities() {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(quantities));
+        saveStatus.textContent = 'Quantities save automatically in this browser.';
+      } catch (error) {
+        saveStatus.textContent = 'Browser storage is unavailable. Calculator will still work until the page is closed.';
+      }
+    }
+
+    function renderCalculator() {
+      calculator.innerHTML = '';
+
+      priceData.forEach(section => {
+        const card = document.createElement('article');
+        card.className = `category ${section.accent}`;
+        card.innerHTML = `
+          <div class="category-title">
+            <h2>${section.category}</h2>
+            <div class="category-total" id="total-${section.category}">$0.00</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Item</th>
+                <th style="text-align:right;">Item Price</th>
+                <th style="text-align:center;">Qty</th>
+                <th style="text-align:right;">Line Total</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        `;
+
+        const tbody = card.querySelector('tbody');
+        section.items.forEach(([item, price]) => {
+          const key = makeKey(section.category, item);
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td class="category-cell">${section.category}</td>
+            <td>${item}</td>
+            <td class="price">${currency.format(price)}</td>
+            <td style="text-align:center;"><input type="number" min="0" step="1" inputmode="numeric" data-category="${section.category}" data-item="${item}" data-price="${price}" value="${quantities[key] || 0}" aria-label="Quantity for ${item}"></td>
+            <td class="line-total" data-line-total="${key}">$0.00</td>
+          `;
+          tbody.appendChild(row);
+        });
+
+        calculator.appendChild(card);
+      });
+
+      calculator.querySelectorAll('input[type="number"]').forEach(input => {
+        input.addEventListener('input', event => {
+          const category = event.target.dataset.category;
+          const item = event.target.dataset.item;
+          const key = makeKey(category, item);
+          const value = Math.max(0, Math.floor(Number(event.target.value) || 0));
+          event.target.value = value;
+          quantities[key] = value;
+          saveQuantities();
+          updateTotals();
+        });
+      });
+
+      updateTotals();
+    }
+
+    function updateTotals() {
+      let grandTotal = 0;
+      const categoryTotals = {};
+
+      priceData.forEach(section => {
+        categoryTotals[section.category] = 0;
+        section.items.forEach(([item, price]) => {
+          const key = makeKey(section.category, item);
+          const qty = Number(quantities[key]) || 0;
+          const lineTotal = qty * price;
+          categoryTotals[section.category] += lineTotal;
+          const lineEl = document.querySelector(`[data-line-total="${CSS.escape(key)}"]`);
+          if (lineEl) lineEl.textContent = currency.format(lineTotal);
+        });
+        grandTotal += categoryTotals[section.category];
+      });
+
+      Object.entries(categoryTotals).forEach(([category, total]) => {
+        const totalEl = document.getElementById(`total-${category}`);
+        const summaryEl = document.getElementById(`summary-${category}`);
+        if (totalEl) totalEl.textContent = currency.format(total);
+        if (summaryEl) summaryEl.textContent = currency.format(total);
+      });
+
+      grandTotalEl.textContent = currency.format(grandTotal);
+    }
+
+    function buildSummaryText() {
+      const lines = ['Pier 76 Price Calculator Summary', ''];
+      let grandTotal = 0;
+
+      priceData.forEach(section => {
+        let categoryTotal = 0;
+        const itemLines = [];
+
+        section.items.forEach(([item, price]) => {
+          const qty = Number(quantities[makeKey(section.category, item)]) || 0;
+          if (qty > 0) {
+            const lineTotal = qty * price;
+            categoryTotal += lineTotal;
+            itemLines.push(`- ${item}: ${currency.format(price)} x ${qty} = ${currency.format(lineTotal)}`);
+          }
+        });
+
+        if (itemLines.length) {
+          lines.push(section.category);
+          lines.push(...itemLines);
+          lines.push(`Category Total: ${currency.format(categoryTotal)}`, '');
+        }
+
+        grandTotal += categoryTotal;
+      });
+
+      lines.push(`Grand Total: ${currency.format(grandTotal)}`);
+      return lines.join('\n');
+    }
+
+    document.getElementById('resetQty').addEventListener('click', () => {
+      if (!confirm('Reset all quantities to zero?')) return;
+      quantities = {};
+      saveQuantities();
+      calculator.querySelectorAll('input[type="number"]').forEach(input => input.value = 0);
+      updateTotals();
+    });
+
+    document.getElementById('printQuote').addEventListener('click', () => window.print());
+
+    document.getElementById('copySummary').addEventListener('click', async () => {
+      const summary = buildSummaryText();
+      try {
+        await navigator.clipboard.writeText(summary);
+        saveStatus.textContent = 'Summary copied to clipboard.';
+      } catch (error) {
+        saveStatus.textContent = 'Copy failed. You can still print or save this page as a PDF.';
+      }
+    });
+
+    renderCalculator();
+  </script>
+</body>
+</html>
